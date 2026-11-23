@@ -1,85 +1,50 @@
-// 03 프로필 설정 1 (21 내 가게 > 프로필 수정에서도 같은 화면을 써요)
+// 03 프로필 설정 1 (가게 정보 불러오기) + 03 프로필 설정 3 (이 가게가 맞나요? 시트)
+import { useState } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '@/state/AppContext';
-import { AddChip, Chip, ChipGroup, CtaBar, FormField, Progress, Screen, TimeSelect, Txt } from '@/components/ui';
-
-const CATEGORIES = ['카페', '꽃집', '공방', '서점', '식당', '패션', '라이프스타일'];
-const AUDIENCE = ['직장인', '연인', '가족', '관광객', '학생'];
-const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
-const HOUR_OPTIONS = ['예약제', '공휴일 휴무', '격주 휴무'];
+import { PLACE_RESULT } from '@/data';
+import { BottomSheet, Button, CtaBar, FormField, ProgressTabs, Screen, Txt } from '@/components/ui';
+import { C } from '@/lib/colors';
 
 export default function ProfileSetup() {
-  const { state, update, toggle, toast } = useApp();
+  const { state, setForms } = useApp();
+  const [confirm, setConfirm] = useState(false);
   const editing = state.editingProfile;
 
-  const save = () => {
-    update({ editingProfile: false });
-    router.back();
-    toast('프로필을 저장했어요');
+  const search = () => {
+    // TODO: 네이버 지역 검색 API (가게 이름, 업종, 도로명 주소, 가게 설명, 상세정보 URL)
+    if (!editing) setForms({ storeName: PLACE_RESULT.name, storeCat: PLACE_RESULT.cat, storeAddress: PLACE_RESULT.address });
+    setConfirm(true);
   };
+  const check = <Ionicons name="checkmark" size={22} color={C.charcoal} />;
 
   return (
-    <Screen
-      title="가게 프로필 설정"
-      footer={
-        editing ? (
-          <CtaBar primary={{ label: '저장하기', onPress: save }} />
-        ) : (
-          <CtaBar primary={{ label: '다음', onPress: () => router.push('/profile-setup-2') }} />
-        )
-      }
-    >
-      {!editing && <Progress step={2} />}
-      <FormField name="storeName" label="가게 이름" placeholder="예: 성수 봄빵 베이커리" />
+    <Screen headerBorder={false} footer={<CtaBar plain primary={{ label: '다음', onPress: search }} />}>
+      {!editing && (
+        <ProgressTabs step={3} onStep={(n) => router.dismissTo(n === 1 ? '/signup' : '/biz-verify')} />
+      )}
+      <View className="gap-2.5">
+        <Txt v="h1">{editing ? '가게 정보를 다시 불러올까요?' : '가게 정보를\n불러올까요?'}</Txt>
+        <Txt tone="sub">{'네이버 플레이스 링크를 붙여넣거나,\n상호명 또는 주소를 검색해 보세요.'}</Txt>
+      </View>
+      <FormField name="placeQuery" label="상호명 / 주소로 검색" placeholder="서울 성동구 성수이로 00" />
 
-      <View className="gap-2">
-        <Txt v="bold">업종</Txt>
-        {/* '+'로 목록에 없는 업종을 직접 추가해요. 추가한 업종은 바로 선택돼요. */}
-        <View className="flex-row flex-wrap gap-2">
-          {[...CATEGORIES, ...state.customCats].map((c) => (
-            <Chip key={c} label={c} on={state.cat === c} onPress={() => update({ cat: c })} />
-          ))}
-          <AddChip
-            label="업종 직접 추가"
-            onAdd={(v) =>
-              update((s) => ({
-                customCats: s.customCats.includes(v) || CATEGORIES.includes(v) ? s.customCats : [...s.customCats, v],
-                cat: v,
-              }))
-            }
-          />
+      <BottomSheet visible={confirm} onClose={() => setConfirm(false)} label="이 가게가 맞나요?">
+        <View className="gap-5 p-5">
+          <View className="gap-2.5">
+            <Txt v="h1">이 가게가 맞나요?</Txt>
+            <Txt tone="sub">아래 정보가 정확한지 확인해주세요.</Txt>
+          </View>
+          <View className="gap-3">
+            <FormField name="storeName" label="가게 이름" prefilled right={check} />
+            <FormField name="storeCat" label="업종" prefilled right={check} />
+            <FormField name="storeAddress" label="주소" prefilled right={check} />
+          </View>
+          <Button label="확인" onPress={() => { setConfirm(false); router.push('/profile-details'); }} />
         </View>
-      </View>
-
-      <View className="gap-2">
-        <Txt v="bold">주요 고객층</Txt>
-        <View className="flex-row flex-wrap gap-2">
-          {[...AUDIENCE, ...state.customAudience].map((c) => (
-            <Chip key={c} label={c} on={state.audience.includes(c)} onPress={() => toggle('audience', c)} />
-          ))}
-          <AddChip
-            label="고객층 직접 추가"
-            onAdd={(v) =>
-              update((s) => ({
-                customAudience:
-                  s.customAudience.includes(v) || AUDIENCE.includes(v) ? s.customAudience : [...s.customAudience, v],
-                audience: s.audience.includes(v) ? s.audience : [...s.audience, v],
-              }))
-            }
-          />
-        </View>
-      </View>
-
-      <View className="gap-2">
-        <Txt v="bold">영업 시간대</Txt>
-        <ChipGroup fill options={DAYS} value={state.days} onChange={(d) => toggle('days', d)} />
-        <ChipGroup options={HOUR_OPTIONS} value={state.hourOpts} onChange={(o) => toggle('hourOpts', o)} />
-      </View>
-      <View className="flex-row gap-4">
-        <TimeSelect label="시작 시간" value={state.start} onChange={(v) => update({ start: v })} />
-        <TimeSelect label="종료 시간" value={state.end} onChange={(v) => update({ end: v })} />
-      </View>
+      </BottomSheet>
     </Screen>
   );
 }

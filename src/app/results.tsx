@@ -1,162 +1,181 @@
-// 16 협업 성과 결과
-import { View } from 'react-native';
-import { useApp } from '@/state/AppContext';
+// 16 협업 성과 결과 (예시 숫자. TODO: 성과 API — 쿠폰 사용·QR 스캔·방문 고객·유입 경로)
+import { useEffect, useState } from 'react';
+import { Animated, Easing, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { RESULTS } from '@/data';
-import { Card, Screen, StoreHead, Txt } from '@/components/ui';
+import { Card, Screen, Txt } from '@/components/ui';
+import { C } from '@/lib/colors';
 
-/** 둥근 숫자 표시 (그래프 위 사건 표시와 범례에 함께 써요) */
+
+/** 0에서 목표값까지 숫자가 올라가요 */
+function useCountUp(target: number, ms = 900) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => {
+      const p = Math.min(1, (Date.now() - start) / ms);
+      setV(Math.round(target * (1 - Math.pow(1 - p, 3))));
+      if (p === 1) clearInterval(id);
+    }, 16);
+    return () => clearInterval(id);
+  }, [target, ms]);
+  return v;
+}
+
+function useGrow(delay = 0) {
+  const [a] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    Animated.timing(a, { toValue: 1, duration: 700, delay, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+  }, [a, delay]);
+  return a;
+}
+
 function Marker({ n }: { n: number }) {
   return (
-    <View className="h-6 w-6 items-center justify-center rounded-full border border-ink bg-white">
-      <Txt v="sm" className="font-bold">
-        {n}
-      </Txt>
+    <View className="h-6 w-6 items-center justify-center rounded-full border border-charcoal bg-white">
+      <Txt v="caption" className="font-bold">{n}</Txt>
     </View>
   );
 }
 
-function Panel({ children }: { children: React.ReactNode }) {
-  return <View className="gap-4 rounded-2xl border border-hair p-6">{children}</View>;
+function Compare() {
+  const { before, during } = RESULTS;
+  const growth = Math.round(((during - before) / before) * 100);
+  const g = useGrow();
+  const shown = useCountUp(growth);
+  const bar = (value: number, label: string, on: boolean) => (
+    <View className="flex-1 items-center gap-2">
+      <Txt v="title">{value}명</Txt>
+      <View className="h-[140px] w-16 justify-end">
+        <Animated.View
+          style={{ width: 64, borderTopLeftRadius: 8, borderTopRightRadius: 8, backgroundColor: on ? C.charcoal : C.sand, height: g.interpolate({ inputRange: [0, 1], outputRange: [0, (value / during) * 140] }) }} />
+      </View>
+      <Txt tone="sub">{label}</Txt>
+    </View>
+  );
+  return (
+    <Card gap={14} radius={16}>
+      <Txt v="title">협업 전후 비교</Txt>
+      <View className="flex-row items-end gap-2">
+        <Txt v="big">+{shown}%</Txt>
+        <Txt tone="sub" className="pb-1">{during - before}명 늘었어요</Txt>
+      </View>
+      <View className="flex-row px-6">{bar(before, '협업 전', false)}{bar(during, '협업 중', true)}</View>
+      <Txt v="caption" tone="sub">협업 전 2주와 협업 중 2주의 방문 고객</Txt>
+    </Card>
+  );
 }
 
-export default function Results() {
-  const { collab } = useApp();
-  const { before, during, tiles, sources, daily, markers } = RESULTS;
-  const growth = Math.round(((during - before) / before) * 100);
+function Daily() {
+  const { daily, markers, dailyInsight } = RESULTS;
   const max = Math.max(...daily);
   const peak = daily.indexOf(max);
-
+  const g = useGrow(200);
   return (
-    <Screen title="협업 성과" gap={14}>
-      <StoreHead name={collab.name} sub={collab.title} />
-      <Card gap={4}>
-        <Txt v="bold">AI 요약</Txt>
-        <Txt>베이커리와 공방 조합은 반응이 좋아요. 다음 협업 후보로 꽃집을 추천해요</Txt>
-      </Card>
-
-      <Panel>
-        <View>
-          <Txt v="h18">협업 전후 비교</Txt>
-          <Txt v="big" tone="brand">
-            +{growth}%
-          </Txt>
-          <Txt tone="sub">{during - before}명 늘었어요</Txt>
-        </View>
-        <View
-          className="flex-row items-end justify-center gap-6"
-          accessible
-          accessibilityLabel={`방문 고객 협업 전 ${before}명, 협업 중 ${during}명`}
-        >
-          {(
-            [
-              ['협업 전', before, 'bg-line'],
-              ['협업 중', during, 'bg-brand'],
-            ] as const
-          ).map(([label, v, color]) => (
-            <View key={label} className="w-[102px] items-center gap-1.5">
-              <Txt v="h22">{v}명</Txt>
-              <View className={`w-[74px] ${color}`} style={{ height: (v / during) * 110 }} />
-              <Txt tone="sub">{label}</Txt>
+    <Card gap={14} radius={16}>
+      <Txt v="title">일별 추이</Txt>
+      <View className="h-[150px] flex-row items-end gap-1">
+        {daily.map((d, i) => {
+          const mk = markers.find((m) => m.day === i + 1);
+          return (
+            <View key={i} className="flex-1 items-center justify-end gap-1">
+              {i === peak && <Txt v="tiny" className="font-bold">{d}</Txt>}
+              {mk && <Marker n={mk.n} />}
+              {/* Animated.View에는 className 대신 style로 색을 줘요 (웹에서 className이 빠지는 경우가 있어요) */}
+              <Animated.View
+                style={{ width: '100%', borderTopLeftRadius: 4, borderTopRightRadius: 4, backgroundColor: i === peak ? C.yellow : i + 1 >= 5 ? C.charcoal : C.sand, height: g.interpolate({ inputRange: [0, 1], outputRange: [0, (d / max) * 100] }) }} />
             </View>
-          ))}
-        </View>
-        <Txt tone="sub" className="text-center">
-          협업 전 2주와 협업 중 2주의 방문 고객
-        </Txt>
-      </Panel>
+          );
+        })}
+      </View>
+      <View className="flex-row justify-between"><Txt v="caption" tone="sub">1일</Txt><Txt v="caption" tone="sub">7일</Txt><Txt v="caption" tone="sub">14일</Txt></View>
+      <View className="gap-1.5">
+        {markers.map((m) => (
+          <View key={m.n} className="flex-row items-center gap-2"><Marker n={m.n} /><Txt className="flex-1">{m.label}</Txt><Txt tone="sub">{m.day}일</Txt></View>
+        ))}
+      </View>
+      <Insight text={dailyInsight} />
+    </Card>
+  );
+}
 
-      <View className="flex-row gap-2.5">
-        {tiles.map(([k, v]) => (
-          <View key={k} className="flex-1">
-            <Card pad="md" gap={2}>
-              <Txt tone="sub">{k}</Txt>
-              <Txt v="h20">{v}</Txt>
-            </Card>
+function Insight({ text }: { text: string }) {
+  return (
+    <View className="flex-row items-center gap-2 rounded-lg bg-yellow-soft p-3">
+      <Ionicons name="sparkles-outline" size={16} color={C.charcoal} />
+      <Txt className="flex-1">{text}</Txt>
+    </View>
+  );
+}
+
+function Sources() {
+  const { sources, sourceInsight } = RESULTS;
+  const total = sources.reduce((a, s) => a + s.count, 0);
+  const shown = useCountUp(total);
+  const g = useGrow(300);
+  const [p, setP] = useState(0);
+  useEffect(() => {
+    const id = g.addListener(({ value }) => setP(value));
+    return () => g.removeListener(id);
+  }, [g]);
+  const R = 70, W = 22, CIRC = 2 * Math.PI * R;
+  const starts = sources.map((_, i) => sources.slice(0, i).reduce((a, x) => a + (x.count / total) * CIRC, 0));
+  return (
+    <Card gap={14} radius={16}>
+      <Txt v="title">신규 고객 출처</Txt>
+      <View className="items-center justify-center">
+        <Svg width={180} height={180} viewBox="0 0 180 180">
+          <Circle cx={90} cy={90} r={R} stroke={C.line} strokeWidth={W} fill="none" />
+          {sources.map((s, i) => {
+            const len = (s.count / total) * CIRC * p;
+            const off = -starts[i] * p;
+            return (
+              <Circle key={s.label} cx={90} cy={90} r={R} stroke={s.color} strokeWidth={W} fill="none"
+                strokeDasharray={`${len} ${CIRC}`} strokeDashoffset={off} transform="rotate(-90 90 90)" />
+            );
+          })}
+        </Svg>
+        <View className="absolute items-center">
+          <Txt v="h1">{shown}명</Txt>
+          <Txt v="caption" tone="sub">신규 고객 합계</Txt>
+        </View>
+      </View>
+      <View className="gap-2">
+        {sources.map((s) => (
+          <View key={s.label} className="flex-row items-center gap-2">
+            <View className="h-3 w-3 rounded-full" style={{ backgroundColor: s.color }} />
+            <Txt className="flex-1">{s.label}</Txt>
+            <Txt v="bodyBold">{s.count}명 · {s.pct}%</Txt>
           </View>
         ))}
       </View>
+      <Insight text={sourceInsight} />
+    </Card>
+  );
+}
 
-      <Panel>
-        <Txt v="h20">신규 고객 출처</Txt>
-        <View
-          className="h-9 flex-row overflow-hidden rounded-lg"
-          accessible
-          accessibilityLabel={sources.map((s) => `${s.label} ${s.pct}%`).join(', ')}
-        >
-          {sources.map((s) => (
-            <View key={s.label} className={s.color} style={{ flex: s.pct }} />
-          ))}
+export default function Results() {
+  const { summary, tiles } = RESULTS;
+  return (
+    <Screen title="협업 성과" bg="canvas" gap={14}>
+      <Card bg="yellow" border="none" radius={16} gap={6}>
+        <View className="flex-row items-center gap-1.5">
+          <Ionicons name="sparkles-outline" size={18} color={C.charcoal} />
+          <Txt v="title">AI 요약</Txt>
         </View>
-        <View className="gap-3">
-          {sources.map((s) => (
-            <View key={s.label} className="flex-row items-center gap-2.5">
-              <View className={`h-4 w-4 rounded ${s.color}`} />
-              <Txt v={s.strong ? 'bold' : 'body'} className="flex-1">
-                {s.label}
-              </Txt>
-              <Txt v={s.strong ? 'bold' : 'body'} tone={s.strong ? 'ink' : 'sub'}>
-                {s.count}명 · {s.pct}%
-              </Txt>
-            </View>
-          ))}
-        </View>
-        <View className="rounded-lg bg-fill p-4">
-          <Txt v="medium">신규 고객 3명 중 1명은 상대 가게에서 왔어요</Txt>
-        </View>
-      </Panel>
-
-      <Panel>
-        <Txt v="h20">일별 추이</Txt>
-        <View
-          className="h-[142px] flex-row items-end gap-1.5 border-b border-line"
-          accessible
-          accessibilityLabel={`14일간 일별 쿠폰 사용, 가장 많았던 날 ${peak + 1}일 ${max}회`}
-        >
-          {daily.map((v, i) => {
-            const m = markers.find((x) => x.day === i + 1);
-            return (
-              <View key={i} className="h-full flex-1 items-center justify-end">
-                {m && <View className="absolute bottom-0 top-6 w-0.5 bg-ink" />}
-                {m && (
-                  <View className="absolute top-0">
-                    <Marker n={m.n} />
-                  </View>
-                )}
-                {i === peak && (
-                  <Txt v="bold" tone="brand" className="absolute top-[34px]">
-                    {v}
-                  </Txt>
-                )}
-                <View className="w-full max-w-[14px] bg-brand" style={{ height: (v / max) * 80 }} />
-              </View>
-            );
-          })}
-        </View>
-        <View className="-mt-2 flex-row justify-between">
-          <Txt v="sm" tone="sub">
-            1일
-          </Txt>
-          <Txt v="sm" tone="sub">
-            7일
-          </Txt>
-          <Txt v="sm" tone="sub">
-            14일
-          </Txt>
-        </View>
-        <View className="gap-2">
-          {markers.map((m) => (
-            <View key={m.n} className="flex-row items-center gap-2.5">
-              <Marker n={m.n} />
-              <Txt className="flex-1">{m.label}</Txt>
-              <Txt tone="sub">{m.day}일</Txt>
-            </View>
-          ))}
-        </View>
-        <View className="rounded-lg bg-fill p-4">
-          <Txt v="medium">스토리를 올린 날부터 쿠폰 사용이 늘기 시작했어요</Txt>
-        </View>
-      </Panel>
-      <Txt tone="sub">화면 구성을 위한 예시 숫자예요</Txt>
+        <Txt>{summary}</Txt>
+      </Card>
+      <Compare />
+      <Daily />
+      <View className="flex-row gap-2">
+        {tiles.map(([l, v]) => (
+          <View key={l} className="flex-1">
+            <Card gap={4} radius={16}><Txt tone="sub">{l}</Txt><Txt v="h1">{v}</Txt></Card>
+          </View>
+        ))}
+      </View>
+      <Sources />
     </Screen>
   );
 }

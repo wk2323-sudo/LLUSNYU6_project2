@@ -1,141 +1,111 @@
-// 14 홍보 콘텐츠 아이디어: 게시물 · 스토리 · 문구
-import { Pressable, View } from 'react-native';
+// 14 홍보 콘텐츠: 게시물 · 스토리 · 문구
+import { useState } from 'react';
+import { TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp, type ContentTab } from '@/state/AppContext';
 import {
-  COUPON_LINK,
-  HASHTAG_OPTIONS,
-  POST_CAPTIONS,
-  POST_HASHTAGS,
-  STORY_STEPS,
-  STORY_TAGS,
-  TONE_OPTIONS,
+  HASHTAG_OPTIONS, POST_CAPTIONS, STICKER_OPTIONS, STORY_STEPS, STYLE_OPTIONS, TONE_OPTIONS,
 } from '@/data';
-import { Button, Card, ChipGroup, CtaBar, Placeholder, Screen, Segmented, TitleRow, Txt } from '@/components/ui';
-import { copyText } from '@/lib/nav';
+import { Card, Chip, CtaBar, FormField, Label, ListItem, Notice, Screen, Tag, Tags, TextButton, TopTabs, Txt } from '@/components/ui';
 import { C } from '@/lib/colors';
+import { copyText } from '@/lib/nav';
 
 const TABS: readonly ContentTab[] = ['게시물', '스토리', '문구'];
 
-function PostTab({ caption, onCopy }: { caption: string; onCopy: () => void }) {
-  return (
-    <>
-      <Placeholder label="이미지 영역" height={160} />
-      <Card gap={6}>
-        <Txt v="bold">문구 초안</Txt>
-        <View className="rounded-[10px] border border-hair p-2.5">
-          <Txt>{caption}</Txt>
-        </View>
-        <Txt tone="sub">{POST_HASHTAGS}</Txt>
-        <Button label="복사" variant="secondary" size="xs" onPress={onCopy} />
-      </Card>
-    </>
-  );
-}
-
-function StoryTab() {
-  const { state, update, toast } = useApp();
-  return (
-    <>
-      <View className="items-center">
-        <Placeholder label={'스토리 화면\n(9대16)'} width={216} height={385} />
-      </View>
-      <View className="gap-2">
-        <Txt v="bold">스토리 구성</Txt>
-        {STORY_STEPS.map(([t, d]) => (
-          <View key={t} className="gap-0.5 rounded-lg border border-line p-3">
-            <Txt v="bold">{t}</Txt>
-            <Txt tone="sub">{d}</Txt>
-          </View>
-        ))}
-      </View>
-      <View className="gap-2">
-        <Txt v="bold">해시태그 문구 추천</Txt>
-        <ChipGroup options={STORY_TAGS} value={state.storyTag} onChange={(t) => update({ storyTag: t })} />
-      </View>
-      <View className="gap-2">
-        <Txt v="bold">쿠폰 QR</Txt>
-        <Pressable
-          onPress={async () => {
-            await copyText(COUPON_LINK);
-            toast('쿠폰 링크를 복사했어요');
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="쿠폰 링크 복사"
-          className="h-[46px] flex-row items-center justify-between rounded-lg border border-line px-3 active:opacity-70"
-        >
-          <Txt tone="sub">{COUPON_LINK}</Txt>
-          <Ionicons name="copy-outline" size={20} color={C.sub} />
-        </Pressable>
-        <Txt tone="sub">쿠폰 QR은 링크 스티커로 붙일 수 있어요</Txt>
-      </View>
-    </>
-  );
-}
-
-function CaptionTab({ onCopy }: { onCopy: () => void }) {
-  const { state, store, update, toggle } = useApp();
-  return (
-    <>
-      {TONE_OPTIONS.map((o, i) => (
-        <Card key={o.tone} gap={4} border={state.tone === i ? 'brand' : 'line'} onPress={() => update({ tone: i })}>
-          <TitleRow title={o.tone} aside={state.tone === i ? '선택됨' : null} />
-          <Txt>{o.text(store)}</Txt>
-        </Card>
-      ))}
-      <View className="gap-2">
-        <Txt v="bold">해시태그 추천</Txt>
-        <ChipGroup options={HASHTAG_OPTIONS} value={state.hashtags} onChange={(t) => toggle('hashtags', t)} />
-      </View>
-      <View className="flex-row gap-2">
-        <View className="flex-1">
-          <Button label="복사" variant="secondary" size="xs" onPress={onCopy} />
-        </View>
-        <View className="flex-1">
-          <Button
-            label="다시 쓰기"
-            variant="ghost"
-            onPress={() => update({ tone: (state.tone + 1) % TONE_OPTIONS.length })}
-          />
-        </View>
-      </View>
-    </>
-  );
-}
-
-export default function PromoContent() {
-  const { state, store, update, toast } = useApp();
+export default function Content() {
+  const { state, update, toggle, toast } = useApp();
+  const [editing, setEditing] = useState(false);
+  const [caption, setCaption] = useState<string | null>(null);
+  const shownCaption = caption ?? POST_CAPTIONS[state.captionIdx % POST_CAPTIONS.length];
   const tab = state.contentTab;
-  const postCaption = POST_CAPTIONS[state.captionIdx % POST_CAPTIONS.length](store);
-  const toneText = `${TONE_OPTIONS[state.tone].text(store)} ${state.hashtags.join(' ')}`;
-  const copy = async (text: string) => {
-    await copyText(text);
-    toast('문구를 복사했어요');
-  };
 
-  // 탭마다 보조 버튼이 달라요
-  const secondary = {
-    게시물: { label: '문구만 복사하기', onPress: () => copy(postCaption) },
-    스토리: { label: '이 구성 저장하기', onPress: () => toast('스토리 구성을 저장했어요') },
-    문구: { label: '이 문구 복사하기', onPress: () => copy(toneText) },
-  }[tab];
+  const currentText = tab === '게시물' ? `${shownCaption}\n${state.hashtags.join(' ')}`
+    : tab === '스토리' ? STICKER_OPTIONS[state.sticker] : `${TONE_OPTIONS[state.tone].text}\n${state.hashtags.join(' ')}`;
 
   return (
-    <Screen
-      title="홍보 콘텐츠 아이디어"
-      gap={12}
-      footer={
-        <CtaBar
-          primary={{ label: '협업 시작하기', onPress: () => router.push('/collab-detail') }}
-          secondary={secondary}
-        />
-      }
-    >
-      <Segmented options={TABS} value={tab} onChange={(t) => update({ contentTab: t })} />
-      {tab === '게시물' && <PostTab caption={postCaption} onCopy={() => copy(`${postCaption}\n${POST_HASHTAGS}`)} />}
-      {tab === '스토리' && <StoryTab />}
-      {tab === '문구' && <CaptionTab onCopy={() => copy(toneText)} />}
+    <Screen title="홍보 콘텐츠"
+      below={<TopTabs options={TABS} value={tab} onChange={(t) => update({ contentTab: t })} />}
+      footer={<CtaBar primary={{ label: '파트너에게 공유', onPress: () => toast('파트너에게 공유했어요') }}
+        secondary={{ label: '문구 복사하기', onPress: async () => { await copyText(currentText); toast('문구를 복사했어요'); } }} />}>
+      <Notice tone="sand" icon="sparkles-outline" title="AI 초안이에요" body="생성된 홍보 문구를 확인하고 직접 고쳐서 쓸 수 있어요. 올리는 일은 앱 밖에서 해 주세요." />
+      <FormField name="refLink" label="참고 자료 (선택)" placeholder="참고할 영상이나 게시물 링크를 붙여넣어요"
+        helper="참고 자료를 올리면 AI가 분석해서 아이디어를 만들어 줘요" />
+      <View className="gap-2">
+        <Label text="스타일 옵션 (선택)" />
+        <View className="flex-row gap-2">
+          {STYLE_OPTIONS.map((o) => <Chip key={o} label={o} on={state.styleOpts.includes(o)} onPress={() => toggle('styleOpts', o)} />)}
+        </View>
+        <Txt tone="sub">요즘 유행하는 음성이나 챌린지를 먼저 골라도 돼요</Txt>
+      </View>
+
+      {tab === '게시물' && (
+        <Card gap={12}>
+          <View className="aspect-square items-center justify-center rounded-lg bg-cream">
+            <Ionicons name="image-outline" size={32} color={C.sub} />
+          </View>
+          {editing ? (
+            <TextInput value={shownCaption} onChangeText={setCaption} multiline autoFocus accessibilityLabel="게시물 문구"
+              className="min-h-[80px] rounded-lg border border-charcoal p-3 text-[15px] text-charcoal" textAlignVertical="top" />
+          ) : <Txt>{shownCaption}</Txt>}
+          <Tags items={state.hashtags} />
+          <View className="flex-row gap-4">
+            <TextButton label={editing ? '수정 완료' : '직접 수정'} icon="create-outline" onPress={() => setEditing(!editing)} />
+            <TextButton label="문구 다시 만들기" icon="refresh" onPress={() => { setCaption(null); setEditing(false); update((s) => ({ captionIdx: s.captionIdx + 1 })); }} />
+          </View>
+        </Card>
+      )}
+
+      {tab === '스토리' && (
+        <>
+          <View className="gap-2">
+            <Label text="스토리 구성" />
+            <View className="flex-row gap-2">
+              {STORY_STEPS.map(([t, d]) => (
+                <View key={t} className="flex-1">
+                  <Card pad="md" gap={4} bg="cream" border="none" style={{ aspectRatio: 9 / 14, justifyContent: 'flex-end' }}>
+                    <Txt v="bodyBold">{t}</Txt>
+                    <Txt v="caption" tone="sub">{d}</Txt>
+                  </Card>
+                </View>
+              ))}
+            </View>
+          </View>
+          <View className="gap-2">
+            <Label text="스티커 문구 추천" />
+            {STICKER_OPTIONS.map((s, i) => (
+              <Card key={s} pad="md" selected={state.sticker === i} onPress={() => update({ sticker: i })}><Txt>{s}</Txt></Card>
+            ))}
+          </View>
+          <View className="gap-2">
+            <ListItem title="쿠폰 QR" sub="링크" right={<Ionicons name="qr-code-outline" size={24} color={C.charcoal} />}
+              onPress={() => router.push('/coupon')} />
+            <Txt tone="sub">쿠폰 QR은 링크 스티커로 붙일 수 있어요</Txt>
+          </View>
+        </>
+      )}
+
+      {tab === '문구' && (
+        <>
+          <View className="gap-2">
+            {TONE_OPTIONS.map((t, i) => (
+              <Card key={t.tone} gap={6} selected={state.tone === i} onPress={() => update({ tone: i })}>
+                <View className="flex-row items-center justify-between">
+                  <Txt v="title">{t.tone}</Txt>
+                  {state.tone === i && <Tag label="선택됨" tone="dark" small />}
+                </View>
+                <Txt>{t.text}</Txt>
+              </Card>
+            ))}
+          </View>
+          <View className="gap-2">
+            <Label text="해시태그 추천" />
+            <View className="flex-row flex-wrap gap-2">
+              {HASHTAG_OPTIONS.map((h) => <Chip key={h} label={h} on={state.hashtags.includes(h)} onPress={() => toggle('hashtags', h)} />)}
+            </View>
+          </View>
+        </>
+      )}
     </Screen>
   );
 }

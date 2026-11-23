@@ -1,55 +1,41 @@
-// 09 요청 완료 (협업 요청과 러브콜이 모두 여기로 와요)
+// 09 요청 완료
 import { View } from 'react-native';
-import { useApp } from '@/state/AppContext';
-import { STORES } from '@/data';
-import { Card, CtaBar, InfoRow, Placeholder, Screen, Txt } from '@/components/ui';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { ALSO_LIKE, STORES } from '@/data';
+import { Card, ImageSlot, Screen, SectionTitle, Tag, Txt } from '@/components/ui';
 import { goTab } from '@/lib/nav';
+import { useApp } from '@/state/AppContext';
+import { C } from '@/lib/colors';
 
 export default function RequestSent() {
-  const { state, update } = useApp();
-  const last = state.sentList.at(-1) ?? {
-    storeId: 'gyeol' as const,
-    type: '한정 상품',
-    when: '4월 첫째 주',
-    via: 'request' as const,
-  };
+  const { update } = useApp();
+  const done = () => { update({ collabFilter: 'sent' }); goTab('collab'); };
   return (
-    <Screen
-      title="요청 완료"
-      back={false}
-      big
-      footer={
-        <CtaBar
-          primary={{
-            label: '협업 탭에서 보기',
-            onPress: () => {
-              update({ collabFilter: 'sent' });
-              goTab('collab');
-            },
-          }}
-          secondary={{
-            label: '추천 더 보기',
-            onPress: () => {
-              update({ exploreMode: 'AI 추천' });
-              goTab('explore');
-            },
-          }}
-        />
-      }
-    >
-      <View className="items-center gap-2">
-        <Placeholder label="완료" width={96} height={96} round />
-        <Txt v="h24" className="mt-2">
-          {last.via === 'lovecall' ? '러브콜을 보냈어요' : '요청을 보냈어요'}
-        </Txt>
+    <Screen back={false} headerBorder={false} right={<Txt v="title" onPress={done} accessibilityRole="button">완료</Txt>}>
+      <View className="items-center gap-3 py-8">
+        <View className="h-16 w-16 items-center justify-center rounded-full bg-yellow">
+          <Ionicons name="paper-plane-outline" size={30} color={C.charcoal} />
+        </View>
+        <Txt v="h1">요청을 보냈어요</Txt>
         <Txt tone="sub">상대가 수락하면 알림으로 알려드려요</Txt>
       </View>
-      <Card gap={10}>
-        <InfoRow label="받는 가게" value={STORES[last.storeId].name} />
-        <InfoRow label="협업 유형" value={last.type} />
-        <InfoRow label="희망 시기" value={last.when || '미정'} />
-        <InfoRow label="상태" value="수락 대기 중" />
-      </Card>
+      <SectionTitle title="이런 가게도 있어요" />
+      <View className="gap-3">
+        {ALSO_LIKE.map(({ id, badge }) => {
+          const s = STORES[id];
+          return (
+            <Card key={id} row pad="md" gap={12} onPress={() => router.push(`/store/${id}`)} accessibilityLabel={s.name}>
+              <ImageSlot width={56} height={56} label="사진" icon={false} />
+              <View className="flex-1 gap-1">
+                <Txt v="title">{s.name}</Txt>
+                <Txt tone="sub">{s.cat} · {s.walk}</Txt>
+              </View>
+              <Tag label={badge} />
+            </Card>
+          );
+        })}
+      </View>
     </Screen>
   );
 }

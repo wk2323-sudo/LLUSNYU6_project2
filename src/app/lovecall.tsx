@@ -1,45 +1,49 @@
-// 19 러브콜 보내기
+// 19 러브콜 보내기: 모집글에서 시작한 요청 (협업 요청과 같은 방식으로 전달돼요)
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { useApp } from '@/state/AppContext';
-import { POSTS, STORES } from '@/data';
-import { Card, ChipGroup, CtaBar, FormField, Placeholder, Screen, Txt } from '@/components/ui';
+import { LOVECALL_TYPES, POSTS, proposalDraft } from '@/data';
+import { AiNote, Avatar, Card, ChipGroup, CtaBar, Field, Label, Notice, Screen, Txt } from '@/components/ui';
+import { Reasons } from '@/components/collab';
 
-const TYPES = ['한정 상품', '팝업', '공동 이벤트'];
-
-export default function LoveCall() {
-  const { state, update } = useApp();
-  const p = POSTS[state.postIdx];
-  const s = STORES[p.store];
-
+export default function Lovecall() {
+  const { state, store, update, setForms } = useApp();
+  const post = POSTS[state.postIdx] ?? POSTS[0];
+  const d = proposalDraft(store);
+  const f = state.form;
+  const set = (k: keyof typeof f) => (v: string) => setForms({ [k]: v });
   const send = () => {
-    // TODO: 러브콜 생성 API (협업 요청과 같은 API로 보내요)
-    update((st) => ({
-      storeId: p.store,
-      sentList: [...st.sentList, { storeId: p.store, type: st.reqType, when: st.form.postWhen, via: 'lovecall' }],
-    }));
+    // TODO: 러브콜 보내기 API (협업 요청과 같은 엔드포인트, via=lovecall)
+    update((s) => ({ sentList: [...s.sentList, { storeId: store.id, title: post.title, via: 'lovecall' }] }));
     router.replace('/request-sent');
   };
-
   return (
-    <Screen title="러브콜 보내기" gap={14} footer={<CtaBar primary={{ label: '러브콜 보내기', onPress: send }} />}>
-      <Card bg="fill" gap={2}>
-        <Txt v="bold">모집글에서 시작한 요청이에요</Txt>
-        <Txt tone="sub">협업 요청과 같은 방식으로 전달되고, 수락되면 매치돼요</Txt>
-      </Card>
-      <Card pad="md" row gap={12}>
-        <Placeholder label="로고" width={44} height={44} round />
+    <Screen title="러브콜 보내기" footer={<CtaBar primary={{ label: '러브콜 보내기', disabled: !f.lcMessage.trim(), onPress: send }} />}>
+      <Notice tone="sand" icon="heart-outline" title="모집글에서 시작한 요청이에요" body="협업 요청과 같은 방식으로 전달되고, 수락되면 매치돼요" />
+      <Card row gap={12}>
+        <Avatar label="로고" />
         <View className="flex-1">
-          <Txt v="bold">{s.name}</Txt>
-          <Txt tone="sub">{p.title}</Txt>
+          <Txt v="title">{store.name}</Txt>
+          <Txt tone="sub" numberOfLines={1}>{post.title}</Txt>
         </View>
       </Card>
-      <FormField name="message" label="러브콜 메시지 (AI 초안)" multiline />
       <View className="gap-2">
-        <Txt v="bold">협업 유형</Txt>
-        <ChipGroup dark options={TYPES} value={state.reqType} onChange={(t) => update({ reqType: t })} />
+        <Label text="협업 유형" />
+        <ChipGroup options={LOVECALL_TYPES} value={state.lcType} onChange={(v) => update({ lcType: v })} />
       </View>
-      <FormField name="postWhen" label="희망 시기" placeholder="예: 4월 첫째 주" />
+      <View className="gap-2">
+        <Field label="협업 아이디어" ai multiline value={f.lcIdea} onChangeText={set('lcIdea')} />
+        <AiNote />
+      </View>
+      <Reasons items={d.reasons} />
+      <Field label="서로 기대할 수 있는 효과" multiline value={f.lcEffect} onChangeText={set('lcEffect')} />
+      <View className="gap-2">
+        <Label text="희망 일정 및 실행 조건" />
+        <Field value={f.lcSchedule} onChangeText={set('lcSchedule')} accessibilityLabel="희망 일정" />
+        <Field value={f.lcCondition} onChangeText={set('lcCondition')} accessibilityLabel="실행 조건" />
+      </View>
+      <Field label="러브콜 메시지 (AI 초안)" ai multiline value={f.lcMessage} onChangeText={set('lcMessage')} />
+      <Field label="상대방에게 요청할 사항" multiline value={f.lcRequest} onChangeText={set('lcRequest')} />
     </Screen>
   );
 }

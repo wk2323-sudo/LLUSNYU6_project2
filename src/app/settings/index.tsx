@@ -8,7 +8,7 @@ import { resetTo } from '@/lib/nav';
 
 function Section({ label }: { label: string }) {
   return (
-    <Txt v="bold" tone="sub" className="pb-2 pt-5">
+    <Txt v="title" tone="sub" className="pb-2 pt-5">
       {label}
     </Txt>
   );
@@ -27,11 +27,11 @@ function Row({
 }) {
   const body = (
     <>
-      <Txt tone={muted ? 'sub' : 'ink'}>{label}</Txt>
+      <Txt tone={muted ? 'sub' : 'charcoal'}>{label}</Txt>
       {value !== null && <Txt tone="sub">{value}</Txt>}
     </>
   );
-  const cls = 'min-h-[52px] flex-row items-center justify-between border-b border-hair';
+  const cls = 'min-h-[52px] flex-row items-center justify-between border-b border-line';
   if (!onPress) return <View className={cls}>{body}</View>;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" className={`${cls} active:opacity-60`}>
@@ -50,7 +50,7 @@ export default function Settings() {
     // TODO: 로그아웃 API
     setLogoutOpen(false);
     resetAll();
-    resetTo('/signup');
+    resetTo('/');
     toast('로그아웃했어요');
   };
 
@@ -59,10 +59,7 @@ export default function Settings() {
       <Section label="계정" />
       <Row
         label="프로필 수정"
-        onPress={() => {
-          update({ editingProfile: true });
-          router.push('/profile-setup');
-        }}
+        onPress={go('/my-profile')}
       />
       <Row label="사업자 인증 정보" onPress={go('/settings/biz-info')} />
       <Row label="비밀번호 변경" onPress={go('/settings/password')} />

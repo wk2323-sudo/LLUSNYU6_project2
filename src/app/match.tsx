@@ -1,40 +1,48 @@
 // 11 매치 성사
 import { View } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/state/AppContext';
-import { Card, CtaBar, Placeholder, Screen, Txt } from '@/components/ui';
+import { Avatar, Button, Card, Txt, type IconName } from '@/components/ui';
 import { goTab } from '@/lib/nav';
+import { C } from '@/lib/colors';
 
 export default function Match() {
-  const { store } = useApp();
+  const { store, me, update } = useApp();
+  const insets = useSafeAreaInsets();
+  const next: [string, IconName, () => void][] = [
+    ['아이디어 보기', 'bulb-outline', () => router.push('/ideas')],
+    ['쿠폰 만들기', 'ticket-outline', () => router.push('/coupon')],
+    ['성과 보기', 'bar-chart-outline', () => router.push('/results')],
+  ];
   return (
-    <Screen
-      title="매치 성사"
-      back={false}
-      big
-      footer={
-        <CtaBar
-          primary={{ label: '협업 아이디어 보기', onPress: () => router.push('/ideas') }}
-          secondary={{ label: '협업 탭으로 가기', onPress: () => goTab('collab') }}
-        />
-      }
-    >
-      <View className="items-center gap-4">
-        <View className="flex-row items-center gap-4">
-          <Placeholder label="내 가게" width={84} height={84} round />
-          <Txt v="h28">×</Txt>
-          <Placeholder label={store.short} width={84} height={84} round />
+    <View className="flex-1 bg-white px-5" style={{ paddingTop: insets.top + 12, paddingBottom: Math.max(insets.bottom, 16) }}>
+      <View className="flex-row justify-end">
+        <Txt v="title" onPress={() => goTab('mystore')} accessibilityRole="button">내 가게</Txt>
+      </View>
+      <View className="flex-1 items-center justify-center gap-5">
+        <View className="flex-row items-center">
+          <Avatar size={72} label={me.short} />
+          <View className="-ml-4 rounded-full border-4 border-white"><Avatar size={72} label={store.short} /></View>
         </View>
-        <Txt v="h24">매치가 성사됐어요</Txt>
-        <View className="items-center">
-          <Txt>성수 봄빵 베이커리 × {store.name}</Txt>
-          <Txt tone="sub">AI가 협업 아이디어를 준비했어요</Txt>
+        <Txt v="h1">매치가 성사됐어요</Txt>
+        <Txt tone="sub">{me.name} × {store.name}</Txt>
+        <View className="w-full gap-3 pt-4">
+          <Txt v="title">이어서 해보세요</Txt>
+          <View className="flex-row gap-3">
+            {next.map(([label, icon, go]) => (
+              <View key={label} className="flex-1">
+                <Card onPress={go} gap={8} style={{ alignItems: 'center' }} accessibilityLabel={label}>
+                  <Ionicons name={icon} size={26} color={C.charcoal} />
+                  <Txt v="bodyBold">{label}</Txt>
+                </Card>
+              </View>
+            ))}
+          </View>
         </View>
       </View>
-      <Card gap={6}>
-        <Txt v="bold">다음 순서</Txt>
-        <Txt>아이디어 고르기 → 협업 쿠폰 → 홍보 콘텐츠</Txt>
-      </Card>
-    </Screen>
+      <Button label="협업 바로 가기" onPress={() => { update({ collabFilter: 'doing' }); goTab('collab'); }} />
+    </View>
   );
 }

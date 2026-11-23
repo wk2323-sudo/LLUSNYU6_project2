@@ -19,7 +19,7 @@ export default function ChangePassword() {
   return (
     <Screen
       title="비밀번호 변경"
-      footer={<CtaBar primary={{ label: '비밀번호 변경하기', variant: 'dark', disabled: !ok, onPress: done }} />}
+      footer={<CtaBar primary={{ label: '비밀번호 변경하기', disabled: !ok, onPress: done }} />}
     >
       <FormField name="curPw" label="현재 비밀번호" placeholder="현재 비밀번호 입력" secure />
       <FormField name="newPw" label="새 비밀번호" placeholder="8자 이상 입력" secure />
