@@ -1,5 +1,4 @@
-// 앱 전체 상태. 화면 이동은 expo-router가 맡고, 여기에는 화면끼리 주고받는 값만 둬요.
-// 백엔드가 생기면 서버에서 받아올 값(가게, 요청 목록 등)은 이 상태 대신 API 호출로 바꾸면 돼요.
+
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
   FORM_CHECKLIST, MY_STORE, NOTIFICATION_SETTINGS, PLAN_SECTIONS, PLACE_RESULT, STORES, TOOLS_BY_TYPE, TOOL_BUILD_DEFAULTS,

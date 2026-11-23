@@ -1,4 +1,4 @@
-// 하단 탭바 (홈 · 탐색 · 협업 · 내 가게). Figma 'bottom nav': 떠 있는 둥근 바, 선택된 탭은 베이지 알약.
+
 import { Pressable, View } from 'react-native';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { Ionicons } from '@expo/vector-icons';

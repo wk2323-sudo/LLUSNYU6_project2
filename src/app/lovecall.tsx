@@ -13,7 +13,7 @@ export default function Lovecall() {
   const f = state.form;
   const set = (k: keyof typeof f) => (v: string) => setForms({ [k]: v });
   const send = () => {
-    // TODO: 러브콜 보내기 API (협업 요청과 같은 엔드포인트, via=lovecall)
+    
     update((s) => ({ sentList: [...s.sentList, { storeId: store.id, title: post.title, via: 'lovecall' }] }));
     router.replace('/request-sent');
   };

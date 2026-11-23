@@ -1,4 +1,4 @@
-// 16 협업 성과 결과 (예시 숫자. TODO: 성과 API — 쿠폰 사용·QR 스캔·방문 고객·유입 경로)
+// 16 협업 성과 결과 
 import { useEffect, useState } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';

@@ -2,8 +2,7 @@
 module.exports = {
   content: ['./src/**/*.{ts,tsx}'],
   presets: [require('nativewind/preset')],
-  // 앱은 밝은 화면만 써요. 기본값(media)이면 웹 개발 모드에서
-  // "Cannot manually set color scheme" 오류가 나서 class로 정해요.
+ 
   darkMode: 'class',
   theme: {
     extend: {

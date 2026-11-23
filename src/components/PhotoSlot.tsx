@@ -1,4 +1,4 @@
-// 사진 칸: 비어 있으면 '+ 추가', 사진이 있으면 오른쪽 위 닫기 아이콘으로 지울 수 있어요. (Figma 'photo slot')
+
 import { Image, Pressable, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,7 @@ export function PhotoSlot({ uri, label, onChange, onDenied }: {
   uri: string | null; label: string; onChange: (uri: string | null) => void; onDenied: () => void;
 }) {
   const pick = async () => {
-    // 처음 누르면 iOS가 사진 보관함 접근을 물어봐요 (Figma 'Alert')
+    
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) return onDenied();
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });

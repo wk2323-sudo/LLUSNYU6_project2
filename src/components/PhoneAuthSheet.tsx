@@ -1,5 +1,5 @@
 // 전화번호 인증 시트: ① 필수 동의(로그인일 때는 번호 입력도) → ② 인증번호 5자리
-// Figma 'login modal', 'login modal 인증번호'
+
 import { useRef, useState, type ComponentRef } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { useApp } from '@/state/AppContext';

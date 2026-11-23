@@ -1,5 +1,4 @@
-// 10 받은 요청 상세 + 10_1 수락 확인 + 10_2 거절 사유
-// 제안 상세 카드를 꾹 누르면 '킵'해요. 킵한 항목은 수락 후 협업 상세로 이어져요.
+
 import { useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';

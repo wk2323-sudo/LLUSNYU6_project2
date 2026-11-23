@@ -1,4 +1,4 @@
-// 01 사업자 인증 (가입 2단계). 25 사업자 인증 정보 > 다시 인증하기에서도 같은 화면을 써요.
+// 01 사업자 인증 (가입 2단계)
 import { View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';

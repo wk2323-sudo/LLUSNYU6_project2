@@ -9,8 +9,7 @@ import { PhoneAuthSheet } from '@/components/PhoneAuthSheet';
 import { StatusBar } from 'expo-status-bar';
 import { resetTo } from '@/lib/nav';
 
-// Figma 스플래시의 매장 사진을 쓰려면: Figma에서 '01 Splash screen'의 사진을 내보내
-// assets/images/splash.jpg로 저장하고, 아래 null을 require('../../assets/images/splash.jpg')로 바꿔요.
+
 const SPLASH_PHOTO: ImageSourcePropType | null = null;
 
 export default function Splash() {

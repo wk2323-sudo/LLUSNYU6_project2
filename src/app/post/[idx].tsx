@@ -12,7 +12,7 @@ export default function PostDetail() {
   const s = STORES[p.store];
   const { state, update, setForms, toggle, toast } = useApp();
   const startLovecall = () => {
-    // 러브콜 AI 초안을 채워 두고 이동해요. TODO: AI 러브콜 초안 API
+    // TODO: AI 러브콜 초안 API
     const d = proposalDraft(s);
     setForms({
       lcIdea: `봄 시즌에 맞춰 베이커리의 한정 빵 세트와 ${s.name}의 상품을 함께 구성한 패키지를 만들고 싶어요.`,

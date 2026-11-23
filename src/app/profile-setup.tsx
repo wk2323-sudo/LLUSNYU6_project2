@@ -14,7 +14,7 @@ export default function ProfileSetup() {
   const editing = state.editingProfile;
 
   const search = () => {
-    // TODO: 네이버 지역 검색 API (가게 이름, 업종, 도로명 주소, 가게 설명, 상세정보 URL)
+   
     if (!editing) setForms({ storeName: PLACE_RESULT.name, storeCat: PLACE_RESULT.cat, storeAddress: PLACE_RESULT.address });
     setConfirm(true);
   };

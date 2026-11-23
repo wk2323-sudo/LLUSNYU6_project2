@@ -1,4 +1,4 @@
-// 01 사업자 인증 대기: 3초 뒤 자동으로 다음 단계 (실제로는 국세청 조회 결과를 받으면 이동)
+// 01 사업자 인증 대기
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { router } from 'expo-router';
@@ -10,7 +10,7 @@ export default function BizPending() {
   const reverify = state.reverify;
 
   useEffect(() => {
-    // TODO: 국세청 사업자 상태조회 API 응답을 받으면 이동
+    
     const t = setTimeout(() => {
       if (reverify) {
         update({ reverify: false });

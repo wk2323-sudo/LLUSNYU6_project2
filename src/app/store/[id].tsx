@@ -1,4 +1,4 @@
-// 07 가게 프로필 (다른 가게): 소개 · AI가 찾은 잘 맞는 이유 · 협업 요청 보내기
+// 07 가게 프로필 (다른 가게): 소개 
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';

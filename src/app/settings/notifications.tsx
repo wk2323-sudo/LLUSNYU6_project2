@@ -5,7 +5,7 @@ import { NOTIFICATION_SETTINGS } from '@/data';
 import { Screen, Txt } from '@/components/ui';
 import { C } from '@/lib/colors';
 
-// 웹 미리보기에서 켜진 스위치 손잡이가 기본 청록색으로 보이지 않게 (react-native-web 전용 속성)
+
 const WEB_THUMB = Platform.OS === 'web' ? ({ activeThumbColor: C.white } as object) : {};
 
 export default function NotificationSettings() {

@@ -1,5 +1,4 @@
-// 공통 UI 컴포넌트 (Figma 'G 컴포넌트' 섹션 기준).
-// 스타일은 NativeWind(className)로, 색상은 tailwind.config.js의 DURE 토큰을 써요.
+
 import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   Animated, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View,
@@ -14,10 +13,7 @@ import { goBack } from '@/lib/nav';
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 const NATIVE_DRIVER = Platform.OS !== 'web';
 
-/* ---------- 글자 ---------- */
 
-// Figma 글자 스타일: header 1 (24 Bold) · title (16 Bold) · body (15) · caption (12)
-// 크기·굵기는 v, 색은 tone으로 고르고, className에는 여백·정렬만 넣어요.
 const VARIANTS = {
   h1: 'text-2xl font-bold leading-8',
   title: 'text-base font-bold leading-6',
@@ -47,13 +43,7 @@ export function Txt({ v = 'body', tone = 'charcoal', className = '', style, ...p
   );
 }
 
-/* ---------- 화면 틀 ---------- */
 
-/**
- * 상단 헤더.
- * - back + title: 상세 화면 (가운데 16 Bold 제목, 아래 구분선)
- * - big: 탭 화면 (왼쪽 24 Bold 제목)
- */
 export function Header({ title, back = true, big = false, right, onBack, border }: {
   title?: string; back?: boolean; big?: boolean; right?: ReactNode; onBack?: () => void; border?: boolean;
 }) {
@@ -74,10 +64,7 @@ export function Header({ title, back = true, big = false, right, onBack, border 
   );
 }
 
-/**
- * 한 화면의 기본 틀: 상단 안전 영역 + 헤더 + 스크롤 본문 + (선택) 하단 버튼.
- * inTab=true면 하단 탭바가 아래 안전 영역을 맡아요.
- */
+
 export function Screen({
   title, back = true, big = false, right, onBack, headerBorder, below, children, footer, gap = 20, inTab = false,
   bg = 'white', floating,
@@ -250,7 +237,7 @@ export function Tags({ items, tone = 'line' }: { items: string[]; tone?: keyof t
   return <View className="flex-row flex-wrap gap-2">{items.map((t) => <Tag key={t} label={t} tone={tone} />)}</View>;
 }
 
-/** 칩 끝의 '+'. 누르면 입력칸이 열리고, 완료하면 새 칩을 추가해요. 같은 이름이 있으면 그 칩을 선택해요. */
+
 export function AddChip({ onAdd, label }: { onAdd: (v: string) => void; label: string }) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
@@ -383,7 +370,7 @@ export function Avatar({ size = 44, label }: { size?: number; label?: string }) 
   );
 }
 
-/** 사진·대표 이미지 자리. 실제 이미지가 생기면 expo-image의 <Image>로 바꾸면 돼요. */
+
 export function ImageSlot({ label, height, width, round = false, icon = true }: {
   label?: string; height: number; width?: number; round?: boolean; icon?: boolean;
 }) {
@@ -441,7 +428,7 @@ export function Notice({ title, body, tone = 'cream', icon = 'information-circle
   );
 }
 
-/** 과정 탭: 가입 3단계 표시. 이전 단계는 눌러서 돌아갈 수 있어요. */
+
 export function ProgressTabs({ step, onStep, total = 3 }: { step: number; onStep?: (i: number) => void; total?: number }) {
   return (
     <View className="flex-row gap-1.5" accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: total, now: step }}>
@@ -491,7 +478,7 @@ export function TopTabs<T extends string>({ options, value, onChange }: { option
   );
 }
 
-/** 카드. onPress가 있으면 누를 수 있는 카드가 돼요. 간격은 gap(px)으로 정해요. */
+
 export function Card({ children, onPress, onLongPress, pad = 'lg', gap = 8, selected = false, bg = 'white', border = 'line', row = false, radius = 12, style, accessibilityLabel }: {
   children: ReactNode; onPress?: () => void; onLongPress?: () => void; pad?: 'lg' | 'md' | 'none'; gap?: number; selected?: boolean;
   bg?: 'white' | 'cream' | 'yellow' | 'yellow-soft'; border?: 'line' | 'sand' | 'charcoal' | 'none'; row?: boolean; radius?: 12 | 16;
@@ -559,7 +546,7 @@ function useAppear(visible: boolean) {
   return { anim, mounted };
 }
 
-/** 바텀 시트: 아래에서 위로 0.3초, 배경 딤 25% (Figma 오버레이 설정) */
+
 export function BottomSheet({ visible, onClose, children, label }: { visible: boolean; onClose: () => void; children: ReactNode; label: string }) {
   const insets = useSafeAreaInsets();
   const { anim, mounted } = useAppear(visible);
@@ -582,7 +569,7 @@ export function BottomSheet({ visible, onClose, children, label }: { visible: bo
   );
 }
 
-/** 가운데 다이얼로그: 디졸브 0.2초, 배경 딤. 딤을 누르면 닫혀요. */
+
 export function Dialog({ visible, onClose, children, label }: { visible: boolean; onClose: () => void; children: ReactNode; label: string }) {
   const { anim, mounted } = useAppear(visible);
   if (!mounted) return null;
@@ -618,7 +605,7 @@ export function ConfirmModal({ visible, title, message, confirm, onConfirm, onCa
   );
 }
 
-/** 화면 아래쪽에 잠깐 떴다 사라지는 안내 문구. 루트 레이아웃에 한 번만 둬요. */
+
 export function ToastHost() {
   const { state } = useApp();
   const insets = useSafeAreaInsets();

@@ -13,7 +13,7 @@ export default function ProfileDetails() {
   const allMoods = [...MOODS, ...state.customMoods];
 
   const finish = () => {
-    // TODO: 가게 프로필 저장 API (03 입력값 + 사진 업로드)
+    
     if (editing) {
       update({ editingProfile: false });
       router.dismissTo('/my-profile');
